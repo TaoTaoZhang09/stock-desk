@@ -1,0 +1,81 @@
+# 每个交易日美股收盘后抓取行情，写回 data/market.json，并在同一次任务里发布网页。
+# 用 GITHUB_TOKEN 推送的提交不会再触发「发布网页」，所以这里必须自己部署。
+# 这个任务只提交 data/market.json，不会改 data/portfolio.json。
+name: 更新行情并发布
+
+on:
+  schedule:
+    - cron: "30 22 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 取出仓库
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: 抓取收盘行情
+        run: python3 scripts/fetch_market.py
+
+      - name: 提交行情
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data/market.json
+          if git diff --cached --name-only | grep -qx 'data/portfolio.json'; then
+            echo "refusing to commit portfolio.json"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "行情没有变化"
+          else
+            git commit -m "chore: update closing prices"
+            for attempt in 1 2 3; do
+              if git push origin HEAD:main; then
+                break
+              fi
+              git pull --rebase origin main
+              if [ "$attempt" -eq 3 ]; then
+                echo "push failed"
+                exit 1
+              fi
+              sleep 3
+            done
+          fi
+
+      - name: 准备网页文件
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp index.html manifest.webmanifest icon.svg icon-180.png icon-192.png icon-512.png _site/
+          cp -a css js data config _site/
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传网页
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
