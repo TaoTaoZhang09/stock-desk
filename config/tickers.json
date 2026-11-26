@@ -1,0 +1,29 @@
+{
+  "groups": [
+    { "id": "core", "name": "核心观察", "open": true },
+    { "id": "index", "name": "指数 ETF", "open": false },
+    { "id": "mega", "name": "科技巨头", "open": false },
+    { "id": "other", "name": "其他", "open": false }
+  ],
+  "tickers": [
+    { "sym": "NVDA", "name": "英伟达", "kind": "个股", "group": "core" },
+    { "sym": "TSLA", "name": "特斯拉", "kind": "个股", "group": "core" },
+    { "sym": "SPCX", "name": "SpaceX", "kind": "个股", "group": "core" },
+    { "sym": "SPY", "name": "标普500", "kind": "ETF", "group": "index" },
+    { "sym": "QQQ", "name": "纳斯达克100", "kind": "ETF", "group": "index" },
+    { "sym": "AAPL", "name": "苹果", "kind": "个股", "group": "mega" },
+    { "sym": "MSFT", "name": "微软", "kind": "个股", "group": "mega" },
+    { "sym": "GOOGL", "name": "谷歌", "kind": "个股", "group": "mega" },
+    { "sym": "AMZN", "name": "亚马逊", "kind": "个股", "group": "mega" },
+    { "sym": "META", "name": "Meta", "kind": "个股", "group": "mega" },
+    { "sym": "GLD", "name": "黄金 ETF", "kind": "ETF", "group": "other" },
+    { "sym": "IBIT", "name": "比特币 ETF", "kind": "ETF", "group": "other" },
+    { "sym": "VRT", "name": "维谛（电源散热）", "kind": "个股", "group": "other" },
+    { "sym": "GEV", "name": "GE Vernova", "kind": "个股", "group": "other" }
+  ],
+  "market": [
+    { "sym": "^VIX", "id": "vix", "name": "VIX 恐慌指数" },
+    { "sym": "ES=F", "id": "es", "name": "标普期货" },
+    { "sym": "NQ=F", "id": "nq", "name": "纳指100期货" }
+  ]
+}

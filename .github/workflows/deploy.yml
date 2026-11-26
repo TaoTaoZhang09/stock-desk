@@ -1,0 +1,49 @@
+# 有人（或助手）把改动推进 main 时发布网页。
+# 例如只改了 data/portfolio.json，行情任务不会跑，但页面仍要更新。
+# 行情任务自己的提交用的是 Actions 令牌，不会触发这个工作流，所以行情任务里单独发布了一次。
+name: 发布网页
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 取出仓库
+        uses: actions/checkout@v4
+
+      - name: 准备网页文件
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp index.html manifest.webmanifest icon.svg icon-180.png icon-192.png icon-512.png _site/
+          cp -a css js data config _site/
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 上传网页
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: 发布到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
